@@ -3,6 +3,7 @@
 from confluent_kafka import Producer
 import sys, random, scipy.stats, json, time
 
+
 if __name__ == '__main__':
     if len(sys.argv) != 3:
         sys.stderr.write('Usage: %s <bootstrap-brokers> <topic>\n' % sys.argv[0])
@@ -13,7 +14,7 @@ if __name__ == '__main__':
 
     conf = {'bootstrap.servers': broker}
 
-    p = Producer(**conf)
+    p = Producer(conf)
 
     def delivery_callback(err, msg):
         if err:
@@ -29,20 +30,24 @@ if __name__ == '__main__':
     shape = ["triangle", "circle", "rectangle"]
     lognorm = scipy.stats.lognorm(1)
 
-    while True:
-        d.clear()
+    try:
+        while True:
+            d.clear()
 
-        d["color"] = color[random.randint(0, 3)]
-        d["shape"] = shape[random.randint(0, 2)]
-        d["size"] = lognorm.rvs(1)[0]
+            d["color"] = color[random.randint(0, 3)]
+            d["shape"] = shape[random.randint(0, 2)]
+            d["size"] = lognorm.rvs(1)[0]
 
-        msg_str = json.dumps(d)
+            msg_str = json.dumps(d)
 
-        p.produce(topic=topic, value=msg_str, partition=0, callback=delivery_callback)
+            p.produce(topic=topic, value=msg_str, partition=0, callback=delivery_callback)
 
-        time.sleep(1./frequency)
+            time.sleep(1./frequency)
+            p.poll(0)
 
-        p.poll(0)
+    except KeyboardInterrupt:
+        sys.stderr.write('%% Aborted by user\n')
 
-    sys.stderr.write('Waiting for %d deliveries\n' % len(p))
-    p.flush()
+    finally:
+        sys.stderr.write('Waiting for %d deliveries\n' % len(p))
+        p.flush()
