@@ -31,13 +31,12 @@ if __name__ == '__main__':
             if msg.error():
                 raise KafkaException(msg.error())
             else:
-                sys.stderr.write('%% %s [%d] at offset %d with key %s:\n' %
-                                 (msg.topic(), msg.partition(), msg.offset(),
-                                  str(msg.key())))
+                sys.stderr.write('Message received from %s[%d] with offset %d\n' %
+                             (msg.topic(), msg.partition(), msg.offset()))
                 print(msg.value())
 
     except KeyboardInterrupt:
-        sys.stderr.write('%% Aborted by user\n')
+        sys.stderr.write('[Aborted by user]\n')
 
     finally:
         c.close()

@@ -18,9 +18,9 @@ if __name__ == '__main__':
 
     def delivery_callback(err, msg):
         if err:
-            sys.stderr.write('%% Message failed delivery: %s\n' % err)
+            sys.stderr.write('Message failed delivery: %s\n' % err)
         else:
-            sys.stderr.write('%% Message delivered to %s [%d] @ %d\n' %
+            sys.stderr.write('Message delivered to %s[%d] with offset %d\n' %
                              (msg.topic(), msg.partition(), msg.offset()))
 
     d = dict()
@@ -46,7 +46,7 @@ if __name__ == '__main__':
             p.poll(0)
 
     except KeyboardInterrupt:
-        sys.stderr.write('%% Aborted by user\n')
+        sys.stderr.write('[Aborted by user]\n')
 
     finally:
         sys.stderr.write('Waiting for %d deliveries\n' % len(p))
