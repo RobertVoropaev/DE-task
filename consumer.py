@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 
-from confluent_kafka import Consumer, KafkaException
+from pyspark.streaming.kafka import KafkaUtils
+from pyspark.streaming import StreamingContext
+from pyspark import SparkContext
+
 import sys, json
 
 
@@ -12,31 +15,12 @@ if __name__ == '__main__':
     broker = sys.argv[1]
     topic = sys.argv[2]
 
-    conf = {
-        'bootstrap.servers': broker,
-        'group.id': 0,
-    }
+    sc = SparkContext(appName="StreamingConsumer")
+    ssc = StreamingContext(sc, batchDuration=1)
 
-    c = Consumer(conf)
+    rdd = KafkaUtils.createStream(ssc, groupId='0', topics={topic:0}, kafkaParams={'bootstrap.servers': broker})
+    rdd.pprint()
 
-    c.subscribe([topic])
+    ssc.start()
+    ssc.awaitTermination()
 
-    try:
-        while True:
-            msg = c.poll(1.0)
-
-            if msg is None:
-                continue
-
-            if msg.error():
-                raise KafkaException(msg.error())
-            else:
-                sys.stderr.write('Message received from %s[%d] with offset %d\n' %
-                             (msg.topic(), msg.partition(), msg.offset()))
-                print(msg.value())
-
-    except KeyboardInterrupt:
-        sys.stderr.write('[Aborted by user]\n')
-
-    finally:
-        c.close()
