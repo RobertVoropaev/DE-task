@@ -25,10 +25,9 @@ if __name__ == '__main__':
 
             msg_str = json.dumps(d)
 
-            p.produce(msg_str, partition_key=0)
+            p.produce(bytes(msg_str, encoding="utf-8"), partition_key=b'0')
 
             time.sleep(1./frequency)
-            p.poll(0)
 
     except KeyboardInterrupt:
         sys.stderr.write('[Aborted by user]\n')
