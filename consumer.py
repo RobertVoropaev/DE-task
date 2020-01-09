@@ -1,25 +1,12 @@
 #!/usr/bin/env python
 
-from confluent_kafka import Consumer, KafkaException
+from pykafka import KafkaClient
 import sys, json
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 3:
-        sys.stderr.write('Usage: %s <bootstrap-brokers> <topic>\n' % sys.argv[0])
-        sys.exit(1)
-
-    broker = sys.argv[1]
-    topic = sys.argv[2]
-
-    conf = {
-        'bootstrap.servers': broker,
-        'group.id': 0,
-    }
-
-    c = Consumer(conf)
-
-    c.subscribe([topic])
+    client = KafkaClient('localhost:9092')
+    topic = client.topics['test']
 
     try:
         while True:
