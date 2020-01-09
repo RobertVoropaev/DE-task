@@ -1,9 +1,9 @@
+from pykafka import KafkaClient
 import sys
 import random
 import scipy.stats
 import json
 import time
-from pykafka import KafkaClient
 
 color = ["red", "blue", "green", "yellow"]
 shape = ["triangle", "circle", "rectangle"]
