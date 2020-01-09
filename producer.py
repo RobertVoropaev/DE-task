@@ -22,7 +22,7 @@ if __name__ == '__main__':
     client = KafkaClient('localhost:9092')
     topic = client.topics['test']
 
-    with topic.get_producer(delivery_reports=True) as producer:
+    with topic.get_sync_producer() as producer:
         frequency = 100
         try:
             while True:
