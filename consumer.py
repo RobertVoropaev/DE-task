@@ -16,7 +16,8 @@ if __name__ == '__main__':
     ssc = StreamingContext(sc, batchDuration=1)
 
     rdd = KafkaUtils.createDirectStream(ssc, [topic],
-                                        kafkaParams={'metadata.broker.list': broker})
+                                        kafkaParams={'metadata.broker.list': broker,
+                                        'startingOffsets':'earliest'})
     rdd = rdd.map(lambda data: data[1])
     rdd = rdd.map(lambda data: json.loads(data))
 
