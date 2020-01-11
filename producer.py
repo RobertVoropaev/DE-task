@@ -27,7 +27,7 @@ if __name__ == '__main__':
     with topic.get_sync_producer() as producer:
         data = Data()
 
-        frequency = 100
+        frequency = 10
         try:
             while True:
                 d = data.generate_dict()

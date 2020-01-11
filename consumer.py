@@ -7,14 +7,17 @@ import sys, json
 if __name__ == '__main__':
     broker = "localhost:9092"
     topic = "test"
-
+    
     sc = SparkContext(appName="StreamingConsumer", master="local")
-    sc.setLogLevel("WARN")
+    sc.setLogLevel("ERROR")
     ssc = StreamingContext(sc, batchDuration=1)
 
-    rdd = KafkaUtils.createDirectStream(ssc, [topic], kafkaParams={'metadata.broker.list': broker})
+    rdd = KafkaUtils.createDirectStream(ssc, [topic],
+                                        kafkaParams={'metadata.broker.list': broker})
     rdd.pprint()
 
     ssc.start()
     ssc.awaitTermination()
+
+    ssc.stop(stopSparkContext=True, stopGraceFully=True)
 
