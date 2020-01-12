@@ -5,7 +5,6 @@ import scipy.stats
 import json
 import time
 
-
 class Data:
     def __init__(self):
         self.color = ["red", "blue", "green", "yellow"]
@@ -21,21 +20,24 @@ class Data:
 
 
 if __name__ == '__main__':
-    client = KafkaClient('localhost:9092')
-    topic = client.topics['test']
+    host = 'localhost:9092'
+    topic = 'test'
+    
+    client = KafkaClient(host)
+    topic = client.topics[topic]
 
-    with topic.get_sync_producer() as producer:
+    with topic.get_sync_producer(delivery_reports=True) as producer:
         data = Data()
-
-        frequency = 10
+        frequency = 100
         try:
             while True:
                 d = data.generate_dict()
                 msg_str = json.dumps(d)
 
-                producer.produce(bytes(msg_str, encoding="utf-8"),
-                                 partition_key=b'0')
-                
+                report = producer.produce(bytes(msg_str, encoding="utf-8"))
+                print("Message sent to partition {} with offset {}" \
+                                .format(report.partition_id, report.offset))
+    
                 time.sleep(1./frequency)
         except KeyboardInterrupt:
             sys.stderr.write('[Aborted by user]\n')
