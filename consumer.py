@@ -7,10 +7,11 @@ import scipy.stats
 import numpy as np
 from datetime import datetime
 
-if __name__ == '__main__':
-    broker = "localhost:9092"
-    topic = "test"
-    
+broker = "localhost:9092"
+topic = "test"
+checkpoint = "checkpoint/checkpoint0"
+
+def createContext():
     sc = SparkContext(appName="StreamingConsumer", master="local")
     sc.setLogLevel("ERROR")
     ssc = StreamingContext(sc, batchDuration=1)
@@ -33,14 +34,19 @@ if __name__ == '__main__':
     rdd3 = rdd1.join(rdd2) \
                 .map(lambda data: (datetime.now().strftime("%y-%m-%d %H:%M:%S"), \
                                     data[0], data[1][0], data[1][1])) 
-    
-
 
     rdd3.pprint()
+    ssc.checkpoint(checkpoint)
+    return ssc
+   
 
-
+if __name__ == '__main__':
+    ssc = StreamingContext.getOrCreate(checkpoint, createContext)
     ssc.start()
-    ssc.awaitTermination()
-
-    ssc.stop(stopSparkContext=True, stopGraceFully=True)
+    try:
+        ssc.awaitTermination()
+    except KeyboardInterrupt:
+        sys.stderr.write('[Aborted by user]\n')
+    finally:
+        ssc.stop(stopSparkContext=True, stopGraceFully=True)
 
