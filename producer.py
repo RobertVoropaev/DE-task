@@ -20,15 +20,19 @@ class Data:
 
 
 if __name__ == '__main__':
-    host = 'localhost:9092'
-    topic = 'test'
+    if len(sys.argv) != 3:
+        sys.stderr.write('Usage: %s <bootstrap-server> <topic>\n' % sys.argv[0])
+        sys.exit(1)
+
+    kafka_host = sys.argv[1]
+    kafka_topic =topic = sys.argv[2]
     
-    client = KafkaClient(host)
-    topic = client.topics[topic]
+    client = KafkaClient(kafka_host)
+    topic = client.topics[kafka_topic]
 
     with topic.get_sync_producer(delivery_reports=True) as producer:
         data = Data()
-        frequency = 10
+        frequency = 100 #частота отправки сообщений
         try:
             while True:
                 d = data.generate_dict()
