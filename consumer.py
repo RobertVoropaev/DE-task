@@ -9,6 +9,8 @@ import json
 import scipy.stats
 import numpy as np
 
+import pyspark_cassandra
+
 
 def getSparkSessionInstance(sparkConf):
     if ('sparkSessionSingletonInstance' not in globals()):
@@ -20,37 +22,26 @@ def getSparkSessionInstance(sparkConf):
 
 
 def createContext(host, topic, checkpoint):
-    conf = SparkConf().setAppName("StreamingConsumer").setMaster("local[*]")
+    conf = SparkConf().setAppName("StreamingConsumer") \
+                      .setMaster("local[*]") \
+                      .set("spark.cassandra.connection.host", "127.0.0.1") \
+                      .set("spark.cassandra.connection.port", 9042) 
     
     sc = SparkContext(conf=conf)
     sc.setLogLevel("ERROR")
-    
 
-    ssc = StreamingContext(sc, batchDuration=10)
+    ssc = StreamingContext(sc, batchDuration=5)
     ssc.checkpoint(checkpoint)
 
     dStream = KafkaUtils.createDirectStream(ssc, [topic],
                                         kafkaParams={'metadata.broker.list': host})
-    #TdStream.pprint()
-    dStream.foreachRDD(process)
-
-    return ssc
-
-
-def process(rdd):
-    print("=========== s ===========")
-    if rdd.isEmpty():
-        return
-    rdd3 = rddProcessing(rdd)
-
-    spark = getSparkSessionInstance(rdd.context.getConf())
-    rowRdd = rdd3.map(lambda row: Row(shape=row[0], color=row[1], quantile=row[2]))
     
-    df = spark.createDataFrame(rowRdd)
-    df.createOrReplaceTempView("DataTable")
-    dfs = spark.sql('select * from DataTable')
-    dfs.show()
+    rdd3 = rddProcessing(dStream)
+    rdd3.pprint()
+    
+    rdd3.foreachRDD(lambda rdd: rdd.saveToCassandra("spark", "data"))
 
+    return scc
 
 
 def rddProcessing(rdd):
@@ -66,7 +57,7 @@ def rddProcessing(rdd):
                 .map(lambda data: (data[0], np.quantile(data[1], 0.1)))
     
     rdd3 = rdd1.join(rdd2) \
-                .map(lambda data: (data[0], str(data[1][0]), float(data[1][1]))) 
+                .map(lambda data: (datetime.now(), data[0], str(data[1][0]), float(data[1][1]))) 
     return rdd3
    
 
